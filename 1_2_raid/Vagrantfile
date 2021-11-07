@@ -65,6 +65,12 @@ mount /dev/md/raid_3 /tmp/raid_3/
 mount /dev/md/raid_4 /tmp/raid_4/
 mount /dev/md/raid_5 /tmp/raid_5/
 
+echo "/dev/md127 /tmp/raid_1 ext4 defaults,nofail,discard 0 0" >> /etc/fstab
+echo "/dev/md126 /tmp/raid_2 ext4 defaults,nofail,discard 0 0" >> /etc/fstab
+echo "/dev/md125 /tmp/raid_3 ext4 defaults,nofail,discard 0 0" >> /etc/fstab
+echo "/dev/md124 /tmp/raid_4 ext4 defaults,nofail,discard 0 0" >> /etc/fstab
+echo "/dev/md123 /tmp/raid_5 ext4 defaults,nofail,discard 0 0" >> /etc/fstab
+
 lsblk
 df -h
 
@@ -193,7 +199,7 @@ config.vm.define "server" do |server|
   config.vm.box = 'centos/8'
   config.vm.box_version = "2011.0"
   server.vm.host_name = 'server'
-  server.vm.network :private_network, ip: "10.0.0.41"
+  server.vm.network :private_network, ip: "192.168.56.41"
   server.vm.provision "shell", inline: $script
   server.vm.provider "virtualbox" do |vb|
     vb.memory = "1024"
