@@ -2,6 +2,7 @@
 https://github.com/nixuser/virtlab/blob/main/mdraid/Vagrantfile
 
 Перенос работающей системы с sda на RAID. \
+https://habr.com/ru/post/248073/   \
 Много времени ушло на Vagrant, чтобы получить конфигурацию для тестов. \
 Для создания VM нужно создать /tmp/centos.vmdk \
 VBoxManage createhd --filename tmp/centos_40GB.vmdk --size 40960 --format VMDK \
