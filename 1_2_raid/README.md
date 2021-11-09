@@ -11,7 +11,7 @@ VBoxManage createhd --filename tmp/centos_40GB.vmdk --size 40960 --format VMDK \
 [vagrant@centos-7-raid ~]$ lsblk \
 NAME    MAJ:MIN RM SIZE RO TYPE  MOUNTPOINT \
 sda       8:0    0  40G  0 disk \
-└─sda1    8:1    0  40G  0 part \ 
+└─sda1    8:1    0  40G  0 part \ \
 sdb       8:16   0  40G  0 disk \
 └─sdb1    8:17   0  40G  0 part \
   └─md0   9:0    0  40G  0 raid1 \
