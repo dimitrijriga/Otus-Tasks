@@ -1,0 +1,32 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+  config.vm.define "centos_7" do |centos_7|
+    centos_7.vm.box = "centos/7"
+    centos_7.vm.hostname = "centos-7-raid"
+    centos_7.vm.network :private_network, ip: "192.168.56.41"
+    centos_7.vm.synced_folder ".", "/vagrant", type: "rsync"
+    centos_7.vm.box_check_update = false
+  end
+  config.vm.provider "virtualbox" do |vb|
+     vb.name = "CentOS-7_RAID"
+     vb.memory = 4096
+     vb.cpus = 8
+  
+## vb.customize ["storageattach", "116ecd73-85bb-44a2-87c9-741786edb05f", "--storagectl", "IDE", "--port", "1", "--device", "0", "--type", "hdd", "--medium", "./tmp/centos_2.vdi"]
+     vb.customize [ 'storageattach', 
+        :id,
+        '--storagectl', 'IDE',        
+        '--port', 1,   
+        '--device', 0,  
+        '--type', 'hdd', 
+        '--medium', 'tmp/centos.vmdk']
+  end
+##    second_disk = "/tmp/centos-disk2.vmdk"
+##    vb.customize ['createhd', '--filename', second_disk, '--size', 40 * 1024]
+##    vb.customize ['storageattach', :id, '--storagectl', 'SATA Controller', '--port', 1, '--device', 0, '--type', 'hdd', '--medium', second_disk]
+##  end
+
+
+end
