@@ -1,0 +1,68 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+require 'open3'
+require 'fileutils'
+
+Vagrant.configure("2") do |config|
+
+config.vm.define "server_nfs" do |server_nfs|
+  config.vm.box = 'centos/8.4'
+  config.vm.box_url = 'http://cloud.centos.org/centos/8/vagrant/x86_64/images/CentOS-8-Vagrant-8.4.2105-20210603.0.x86_64.vagrant-virtualbox.box'
+
+  server_nfs.vm.host_name = 'server8-nfs'
+  server_nfs.vm.network :private_network, ip: "192.168.56.10"
+
+  server_nfs.vm.provider "virtualbox" do |vb|
+    vb.memory = "1024"
+    vb.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
+  end
+
+  server_nfs.vm.provision "shell",
+    name: "configuration",
+    path: "init_srv.sh"
+  end
+
+#Script for client_nfs
+$script_cl = <<-SCRIPT
+sudo -i
+#mkdir /mnt/server_nfs
+#mount -t nfs 192.168.56.10:/tmp/nfs_share /mnt/server_nfs/
+#chmod 777 /mnt/server_nfs/upload/
+yum install -y autofs
+
+selinuxenabled && setenforce 0
+cat >/etc/selinux/config<<__EOF
+SELINUX=disabled
+SELINUXTYPE=targeted
+__EOF
+
+cat << EOF | sudo tee /etc/auto.master.d/direct.autofs
+/- /etc/auto.direct
+EOF
+
+cat << EOF | sudo tee /etc/auto.direct
+/mnt/server_nfs -rw 192.168.56.10:/tmp/nfs_share
+EOF
+
+systemctl restart autofs
+
+ls -la /mnt/server_nfs/
+chmod 777 /mnt/server_nfs/upload/
+
+SCRIPT
+
+  config.vm.define "client_nfs" do |client_nfs|
+   client_nfs.vm.box = 'centos/8.4'
+   client_nfs.vm.host_name = 'client8-nfs'
+   client_nfs.vm.network :private_network, ip: "192.168.56.11"
+   client_nfs.vm.provision "shell", inline: $script_cl
+
+   client_nfs.vm.provider :virtualbox do |vb|
+     vb.memory = "1024"
+     vb.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
+   end
+
+ end
+
+end
