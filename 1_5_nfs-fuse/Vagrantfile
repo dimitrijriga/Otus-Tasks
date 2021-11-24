@@ -30,6 +30,8 @@ sudo -i
 #mount -t nfs 192.168.56.10:/tmp/nfs_share /mnt/server_nfs/
 #chmod 777 /mnt/server_nfs/upload/
 yum install -y autofs
+systemctl start autofs
+systemctl enable autofs
 
 selinuxenabled && setenforce 0
 cat >/etc/selinux/config<<__EOF
