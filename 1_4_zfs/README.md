@@ -305,4 +305,29 @@ tmpfs            97M     0   97M   0% /run/user/1000 \
 otus            350M  128K  350M   1% /otus \
 otus/hometask2  352M  2.0M  350M   1% /otus/hometask2 \
 [root@client vagrant]# 
+********************************************************** \
+[root@server pool0]# rm -rfv /pool0/data1/*  \
+[root@server pool0]# rm -rfv /pool0/data2/* \
+[root@server pool0]# rm -rfv /pool0/data3/* \
+[root@server pool0]# rm -rfv /pool0/data4/* 
+
+[root@server pool0]# zfs receive pool0/otus_task2 < /vagrant/otus_task2.file  \
+[root@server pool0]# ls -la /pool0/otus_task2/ \
+total 2109 \
+drwxr-xr-x. 3 root    root         11 May 15  2020 . \
+drwxr-xr-x. 7 root    root          7 Nov 29 19:37 .. \
+-rw-r--r--. 1 root    root          0 May 15  2020 10M.file \
+-rw-r--r--. 1 root    root     727040 May 15  2020 cinderella.tar \
+-rw-r--r--. 1 root    root         65 May 15  2020 for_examaple.txt \
+-rw-r--r--. 1 root    root          0 May 15  2020 homework4.txt \
+-rw-r--r--. 1 root    root     309987 May 15  2020 Limbo.txt \
+-rw-r--r--. 1 root    root     509836 May 15  2020 Moby_Dick.txt \
+drwxr-xr-x. 3 vagrant vagrant       4 Dec 18  2017 task1 \
+-rw-r--r--. 1 root    root    1209374 May  6  2016 War_and_Peace.txt \
+-rw-r--r--. 1 root    root     398635 May 15  2020 world.sql \
+[root@server pool0]# find /pool0/otus_task2/ -name secret_message \
+/pool0/otus_task2/task1/file_mess/secret_message \
+[root@server pool0]# cat /pool0/otus_task2/task1/file_mess/secret_message \
+https://github.com/sindresorhus/awesome \
+[root@server pool0]# 
 
