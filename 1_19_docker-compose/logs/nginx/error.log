@@ -28,3 +28,88 @@
 2022/01/29 15:57:50 [notice] 1#1: signal 17 (SIGCHLD) received from 25
 2022/01/29 15:57:50 [notice] 1#1: worker process 25 exited with code 0
 2022/01/29 15:57:50 [notice] 1#1: signal 29 (SIGIO) received
+2022/01/30 11:53:37 [error] 7#7: *2 open() "/www/favicon.ico" failed (2: No such file or directory), client: 172.18.0.1, server: localhost, request: "GET /favicon.ico HTTP/1.1", host: "127.0.0.1", referrer: "http://127.0.0.1/"
+2022/01/30 11:53:40 [error] 7#7: *2 "/www/index.html" is not found (2: No such file or directory), client: 172.18.0.1, server: localhost, request: "GET / HTTP/1.1", host: "127.0.0.1"
+2022/01/30 11:53:47 [error] 7#7: *2 open() "/www/index.php" failed (2: No such file or directory), client: 172.18.0.1, server: localhost, request: "GET /index.php HTTP/1.1", host: "127.0.0.1"
+2022/01/30 11:53:53 [error] 7#7: *2 open() "/www/index.php" failed (2: No such file or directory), client: 172.18.0.1, server: localhost, request: "GET /index.php HTTP/1.1", host: "127.0.0.1"
+2022/01/30 11:57:49 [error] 8#8: *1 open() "/www/index.php" failed (2: No such file or directory), client: 172.18.0.1, server: localhost, request: "GET /index.php HTTP/1.1", host: "127.0.0.1"
+2022/01/30 11:57:50 [error] 8#8: *1 open() "/www/index.php" failed (2: No such file or directory), client: 172.18.0.1, server: localhost, request: "GET /index.php HTTP/1.1", host: "127.0.0.1"
+2022/01/30 11:57:51 [error] 8#8: *1 open() "/www/index.php" failed (2: No such file or directory), client: 172.18.0.1, server: localhost, request: "GET /index.php HTTP/1.1", host: "127.0.0.1"
+2022/01/30 11:58:03 [error] 8#8: *1 open() "/www/index.php" failed (2: No such file or directory), client: 172.18.0.1, server: localhost, request: "GET /index.php HTTP/1.1", host: "127.0.0.1"
+2022/01/30 14:20:26 [notice] 1#1: using the "epoll" event method
+2022/01/30 14:20:26 [notice] 1#1: nginx/1.21.6
+2022/01/30 14:20:26 [notice] 1#1: built by gcc 10.2.1 20210110 (Debian 10.2.1-6) 
+2022/01/30 14:20:26 [notice] 1#1: OS: Linux 5.15.0-kali2-amd64
+2022/01/30 14:20:26 [notice] 1#1: getrlimit(RLIMIT_NOFILE): 1048576:1048576
+2022/01/30 14:20:26 [notice] 1#1: start worker processes
+2022/01/30 14:20:26 [notice] 1#1: start worker process 23
+2022/01/30 14:20:26 [notice] 1#1: start worker process 24
+2022/01/30 14:20:26 [notice] 1#1: start worker process 25
+2022/01/30 14:20:26 [notice] 1#1: start worker process 26
+2022/01/30 14:28:40 [notice] 1#1: signal 3 (SIGQUIT) received, shutting down
+2022/01/30 14:28:40 [notice] 23#23: gracefully shutting down
+2022/01/30 14:28:40 [notice] 25#25: gracefully shutting down
+2022/01/30 14:28:40 [notice] 24#24: gracefully shutting down
+2022/01/30 14:28:40 [notice] 25#25: exiting
+2022/01/30 14:28:40 [notice] 23#23: exiting
+2022/01/30 14:28:40 [notice] 24#24: exiting
+2022/01/30 14:28:40 [notice] 23#23: exit
+2022/01/30 14:28:40 [notice] 25#25: exit
+2022/01/30 14:28:40 [notice] 24#24: exit
+2022/01/30 14:28:40 [notice] 26#26: gracefully shutting down
+2022/01/30 14:28:40 [notice] 26#26: exiting
+2022/01/30 14:28:40 [notice] 26#26: exit
+2022/01/30 14:28:40 [notice] 1#1: signal 17 (SIGCHLD) received from 24
+2022/01/30 14:28:40 [notice] 1#1: worker process 23 exited with code 0
+2022/01/30 14:28:40 [notice] 1#1: worker process 24 exited with code 0
+2022/01/30 14:28:40 [notice] 1#1: worker process 26 exited with code 0
+2022/01/30 14:28:40 [notice] 1#1: signal 29 (SIGIO) received
+2022/01/30 14:28:40 [notice] 1#1: signal 17 (SIGCHLD) received from 26
+2022/01/30 14:28:40 [notice] 1#1: signal 17 (SIGCHLD) received from 25
+2022/01/30 14:28:40 [notice] 1#1: worker process 25 exited with code 0
+2022/01/30 14:28:40 [notice] 1#1: exit
+2022/01/30 14:29:45 [error] 9#9: *1 open() "/www/index.html" failed (2: No such file or directory), client: 172.18.0.1, server: localhost, request: "GET /index.html HTTP/1.1", host: "127.0.0.1"
+2022/01/30 14:29:46 [error] 9#9: *1 open() "/www/index.html" failed (2: No such file or directory), client: 172.18.0.1, server: localhost, request: "GET /index.html HTTP/1.1", host: "127.0.0.1"
+2022/01/30 14:29:47 [error] 9#9: *1 open() "/www/index.html" failed (2: No such file or directory), client: 172.18.0.1, server: localhost, request: "GET /index.html HTTP/1.1", host: "127.0.0.1"
+2022/01/30 14:29:47 [error] 9#9: *1 open() "/www/index.html" failed (2: No such file or directory), client: 172.18.0.1, server: localhost, request: "GET /index.html HTTP/1.1", host: "127.0.0.1"
+2022/01/30 14:29:47 [error] 9#9: *1 open() "/www/index.html" failed (2: No such file or directory), client: 172.18.0.1, server: localhost, request: "GET /index.html HTTP/1.1", host: "127.0.0.1"
+2022/01/30 14:29:47 [error] 9#9: *1 open() "/www/index.html" failed (2: No such file or directory), client: 172.18.0.1, server: localhost, request: "GET /index.html HTTP/1.1", host: "127.0.0.1"
+2022/01/30 14:29:47 [error] 9#9: *1 open() "/www/index.html" failed (2: No such file or directory), client: 172.18.0.1, server: localhost, request: "GET /index.html HTTP/1.1", host: "127.0.0.1"
+2022/01/30 14:29:55 [error] 9#9: *1 "/www/index.html" is not found (2: No such file or directory), client: 172.18.0.1, server: localhost, request: "GET / HTTP/1.1", host: "127.0.0.1"
+2022/01/30 14:33:22 [error] 7#7: *1 "/www/index.html" is not found (2: No such file or directory), client: 172.18.0.1, server: localhost, request: "GET / HTTP/1.1", host: "127.0.0.1"
+2022/01/30 14:33:23 [error] 7#7: *1 "/www/index.html" is not found (2: No such file or directory), client: 172.18.0.1, server: localhost, request: "GET / HTTP/1.1", host: "127.0.0.1"
+2022/01/30 14:33:23 [error] 7#7: *1 "/www/index.html" is not found (2: No such file or directory), client: 172.18.0.1, server: localhost, request: "GET / HTTP/1.1", host: "127.0.0.1"
+2022/01/30 14:33:23 [error] 7#7: *1 "/www/index.html" is not found (2: No such file or directory), client: 172.18.0.1, server: localhost, request: "GET / HTTP/1.1", host: "127.0.0.1"
+2022/01/30 14:33:24 [error] 7#7: *1 "/www/index.html" is not found (2: No such file or directory), client: 172.18.0.1, server: localhost, request: "GET / HTTP/1.1", host: "127.0.0.1"
+2022/01/30 14:33:24 [error] 7#7: *1 "/www/index.html" is not found (2: No such file or directory), client: 172.18.0.1, server: localhost, request: "GET / HTTP/1.1", host: "127.0.0.1"
+2022/01/30 14:33:31 [error] 7#7: *1 open() "/www/index.php" failed (2: No such file or directory), client: 172.18.0.1, server: localhost, request: "GET /index.php HTTP/1.1", host: "127.0.0.1"
+2022/01/30 14:36:08 [error] 7#7: *1 open() "/www/index.php" failed (2: No such file or directory), client: 172.18.0.1, server: localhost, request: "GET /index.php HTTP/1.1", host: "127.0.0.1"
+2022/01/30 14:36:09 [error] 7#7: *1 open() "/www/index.php" failed (2: No such file or directory), client: 172.18.0.1, server: localhost, request: "GET /index.php HTTP/1.1", host: "127.0.0.1"
+2022/01/30 14:36:13 [error] 7#7: *1 "/www/index.html" is not found (2: No such file or directory), client: 172.18.0.1, server: localhost, request: "GET / HTTP/1.1", host: "127.0.0.1"
+2022/01/30 14:37:59 [notice] 1#1: using the "epoll" event method
+2022/01/30 14:37:59 [notice] 1#1: nginx/1.20.2
+2022/01/30 14:37:59 [notice] 1#1: OS: Linux 5.15.0-kali2-amd64
+2022/01/30 14:37:59 [notice] 1#1: getrlimit(RLIMIT_NOFILE): 1048576:1048576
+2022/01/30 14:37:59 [notice] 1#1: start worker processes
+2022/01/30 14:37:59 [notice] 1#1: start worker process 7
+2022/01/30 14:37:59 [notice] 1#1: start worker process 8
+2022/01/30 14:37:59 [notice] 1#1: start worker process 9
+2022/01/30 14:37:59 [notice] 1#1: start worker process 10
+2022/01/30 14:38:52 [notice] 1#1: signal 15 (SIGTERM) received, exiting
+2022/01/30 14:38:52 [notice] 7#7: exiting
+2022/01/30 14:38:52 [notice] 8#8: exiting
+2022/01/30 14:38:52 [notice] 10#10: exiting
+2022/01/30 14:38:52 [notice] 7#7: exit
+2022/01/30 14:38:52 [notice] 8#8: exit
+2022/01/30 14:38:52 [notice] 10#10: exit
+2022/01/30 14:38:52 [notice] 9#9: exiting
+2022/01/30 14:38:52 [notice] 9#9: exit
+2022/01/30 14:38:52 [notice] 1#1: signal 17 (SIGCHLD) received from 10
+2022/01/30 14:38:52 [notice] 1#1: worker process 9 exited with code 0
+2022/01/30 14:38:52 [notice] 1#1: worker process 10 exited with code 0
+2022/01/30 14:38:52 [notice] 1#1: worker process 7 exited with code 0
+2022/01/30 14:38:52 [notice] 1#1: signal 29 (SIGIO) received
+2022/01/30 14:38:52 [notice] 1#1: signal 17 (SIGCHLD) received from 7
+2022/01/30 14:38:52 [notice] 1#1: signal 17 (SIGCHLD) received from 8
+2022/01/30 14:38:52 [notice] 1#1: worker process 8 exited with code 0
+2022/01/30 14:38:52 [notice] 1#1: exit
