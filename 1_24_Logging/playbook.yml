@@ -1,0 +1,86 @@
+---
+- hosts: all
+  become: yes
+  tasks:
+
+    - name: Install EPEL release for nginx
+      yum: name=epel-release state=present
+
+    - name: Install only centos-web host
+      yum:
+        name: 
+          - nginx
+          - audispd-plugins 
+        state: latest
+      when: "'centos-web' in inventory_hostname"
+
+    - name: Copy nginx.conf
+      ansible.builtin.copy:
+        src: ansible_template/nginx.conf 
+        dest: /etc/nginx/nginx.conf
+      when: "'centos-web' in inventory_hostname"
+
+    - name: Restart nginx, Enable nginx
+      ansible.builtin.shell: systemctl start nginx && systemctl enable nginx
+      when: "'centos-web' in inventory_hostname"
+
+    - name: Copy audit.rules
+      ansible.builtin.copy:
+        src: ansible_template/audit.rules
+        dest: /etc/audit/rules.d/audit.rules
+      when: "'centos-web' in inventory_hostname"
+
+    - name: Copy auditd_web.conf 
+      ansible.builtin.copy:
+        src: ansible_template/auditd_web.conf
+        dest: /etc/audit/auditd.conf
+      when: "'centos-web' in inventory_hostname"
+
+    - name: Copy au-remote.conf
+      ansible.builtin.copy:
+        src: ansible_template/au-remote.conf
+        dest: /etc/audisp/plugins.d/au-remote.conf
+      when: "'centos-web' in inventory_hostname"
+
+    - name: Copy audisp-remote.conf
+      ansible.builtin.copy:
+        src: ansible_template/audisp-remote.conf
+        dest: /etc/audisp/audisp-remote.conf
+      when: "'centos-web' in inventory_hostname"
+
+    - name: Restart auditd service
+      ansible.builtin.shell: service auditd restart command_warnings=False
+      when: "'centos-web' in inventory_hostname"
+
+    - name: Install all hosts
+      yum:
+        name:
+          - vim
+          - htop
+        state: latest
+
+    - name: Copy rsyslog.conf
+      ansible.builtin.copy:
+        src: ansible_template/rsyslog.conf
+        dest: /etc/rsyslog.conf
+      when: "'centos-log' in inventory_hostname"
+
+    - name: Copy auditd_log.conf
+      ansible.builtin.copy:
+        src: ansible_template/auditd_log.conf
+        dest: /etc/audit/auditd.conf
+      when: "'centos-log' in inventory_hostname"
+
+    - name: Restart auditd service
+      ansible.builtin.shell: service auditd restart command_warnings=False
+      when: "'centos-log' in inventory_hostname"
+
+    - name: RSyslog restart
+      ansible.builtin.shell: systemctl restart rsyslog
+      when: "'centos-log' in inventory_hostname"
+
+    - name: Set Europe/Riga GMT all hosts
+      ansible.builtin.shell: |
+        cp /usr/share/zoneinfo/Europe/Riga /etc/localtime
+        systemctl restart chronyd
+
