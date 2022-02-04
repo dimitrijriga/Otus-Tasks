@@ -1,0 +1,44 @@
+---
+- hosts: all
+  become: yes
+
+  handlers:
+  - name: reload nginx
+    service:
+      name: nginx
+      state: reloaded
+
+  tasks:
+
+    - name: Install EPEL release for nginx
+      yum: name=epel-release state=present
+
+    - name: Install only centos-web host
+      yum:
+        name: 
+          - nginx
+        state: latest
+
+    - name: Copy nginx.conf
+      ansible.builtin.copy:
+        src: ansible_template/nginx.conf 
+        dest: /etc/nginx/nginx.conf
+      notify:
+        - reload nginx
+
+#    - name: Restart nginx, Enable nginx
+#      ansible.builtin.shell: systemctl start nginx && systemctl enable nginx
+#      when: "'centos-web' in inventory_hostname"
+
+    - name: Install all hosts
+      yum:
+        name:
+          - vim
+          - htop
+        state: latest
+
+    - name: Set Europe/Riga GMT all hosts
+      ansible.builtin.shell: |
+        cp /usr/share/zoneinfo/Europe/Riga /etc/localtime
+        systemctl restart chronyd
+
