@@ -3,8 +3,14 @@ centos-client с него сохраняются рез.копии /etc \
 centos-backup в /var/backup сохраняются рез.копии, полный путь /var/backup/etc \
 Не смог отделить на sda место для монтирования отдельного разделана котором хранились бы рез.копии \
 Не смог настроить в playbook.yml выполнение init borg репозитория \
-Поэтому, когда обе VM запущены нужно на centos-client выполнить : \
+[root@centos-client ~]# ssh borg@192.168.56.160 --- проверить что работает подключение по ключу \
+Когда обе VM запущены нужно на centos-client выполнить : \
 export BORG_PASSPHRASE="otus" \
 borg init --encryption=keyfile borg@192.168.56.160:/var/backup/etc/  \
-остальное должно начать работать сразу после выполнения инициализации borg
-
+systemctl start borg-backup.service --- для ручного запуска \
+остальное должно начать работать сразу после выполнения инициализации borg \
+systemctl status borg-backup.timer \
+journalctl -u borg-backup.service --- просмотр логов \
+systemctl restart borg-backup.timer --- если не работает \
+borg list borg@192.168.56.160:/var/backup/etc/ --- список копий на сервере \
+ 
