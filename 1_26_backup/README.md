@@ -15,7 +15,7 @@ systemctl status borg-backup.timer \
 journalctl -u borg-backup.service --- просмотр логов \
 systemctl restart borg-backup.timer --- если не работает \
 systemctl daemon-reload --- если вносились изменения в /etc/systemd/system/borg-backup.timer или в /etc/systemd/system/borg-backup.service \
-borg list borg@192.168.56.160:/var/backup/etc/ --- список копий на сервере \
+borg list borg@192.168.56.160:/var/backup/etc/ --- список копий на сервере 
 
 borg prune -v --list --dry-run --keep-daily=10 borg@192.168.56.160:/var/backup/etc/ --- для настройки удаления нужно проверить "что останется?" 
 
