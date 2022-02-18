@@ -25,5 +25,4 @@ ${REPO}
 ExecStart=/bin/borg prune \
 --keep-daily 92 \
 --keep-monthly 12 \
-#--keep-yearly 1 \
 ${REPO}
