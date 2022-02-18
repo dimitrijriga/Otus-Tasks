@@ -16,9 +16,14 @@ ExecStart=/bin/borg prune \
 --keep-within 5H \
 ${REPO}
 
+# Для тестов
+ExecStart=/bin/borg prune \
+--keep-minutely=10 \
+${REPO}
+
 # Очистка старых бэкапов
 ExecStart=/bin/borg prune \
 --keep-daily 92 \
---keep-monthly 9 \
---keep-yearly 1 \
+--keep-monthly 12 \
+#--keep-yearly 1 \
 ${REPO}
