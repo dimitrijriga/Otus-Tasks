@@ -1,7 +1,7 @@
-vagrant up \
-centos-client с него сохраняются рез.копии /etc \
-centos-backup в /var/backup сохраняются рез.копии, полный путь /var/backup/etc \
-Не смог отделить на sda место для монтирования отдельного разделана котором хранились бы рез.копии \
+vagrant up --no-provision && vagrant provision  \
+client с него сохраняются рез.копии /etc \
+backup в /var/backup сохраняются рез.копии, полный путь /var/backup/etc 
+
 Не смог настроить в playbook.yml выполнение init borg репозитория \
 [root@centos-client ~]# ssh borg@192.168.56.160 --- проверить что работает подключение по ключу \
 Когда обе VM запущены нужно на centos-client выполнить : \
