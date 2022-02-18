@@ -1,0 +1,141 @@
+---
+
+- hosts: all
+  become: yes
+  tasks:
+
+    - name: Install EPEL release for all
+      yum: name=epel-release state=present
+
+    - name: Install borgbackup
+      yum:
+        name: 
+          - borgbackup
+          - vim
+          - nano
+          - htop
+
+    - name: Set Europe/Riga GMT all hosts
+      ansible.builtin.shell: cp /usr/share/zoneinfo/Europe/Riga /etc/localtime
+
+    - name: Create a new ext4 primary partition
+      community.general.parted:
+        device: /dev/sdb
+        number: 1
+        state: present
+        fs_type: ext4
+      when: "'backup' in inventory_hostname"
+
+    - name: Format the disk /dev/sdb1 ext4
+      community.general.filesystem:
+        fstype: ext4
+        dev: /dev/sdb1
+        #opts: -cc
+      when: "'backup' in inventory_hostname "
+
+    - name: FSTAB Mount the disk /dev/sdb1 ---> /var/backup
+      ansible.posix.mount:
+       path: /var/backup
+       src: /dev/sdb1
+       state: present
+       fstype: ext4
+#     state: mounted
+      when: "'backup' in inventory_hostname "
+
+    - name: backup VM create user borg, mkdir /var/backup
+      ansible.builtin.shell: |
+              useradd -m borg
+              mkdir /var/backup 
+              mount -a
+              chown borg:borg /var/backup/
+      when: "'backup' in inventory_hostname"
+
+    - name: backup VM authorized_keys
+      ansible.builtin.shell: |
+              mkdir ~/.ssh
+              touch ~/.ssh/authorized_keys
+              chmod 700 ~/.ssh
+              chmod 600 ~/.ssh/authorized_keys
+      become: yes
+      become_user: borg 
+      when: "'backup' in inventory_hostname"
+
+    - name: client VM create borg-user and .ssh-directory
+      ansible.builtin.shell: |
+              useradd -m borg
+              mkdir /home/borg/.ssh
+              chown -R borg.borg /home/borg/
+      when: "'client' in inventory_hostname"
+
+    - name: client VM create SSH-Key RSA
+      ansible.builtin.shell: |
+              chmod 700 ~/.ssh
+              echo -e 'y\n'|ssh-keygen -q -t rsa -f ~/.ssh/id_rsa -C "" -N "" 
+      become: yes
+      become_user: borg 
+      when: "'client' in inventory_hostname"
+
+    - name: client VM copy id_rsa* ---> /root/.ssh
+      ansible.builtin.shell: |
+              mkdir /root/.ssh
+              cp /home/borg/.ssh/id_rsa* /root/.ssh/
+      become: yes
+      become_user: root
+      when: "'client' in inventory_hostname"
+
+    - name: Copy id_rsa.pub to Local host
+      become: true
+      fetch:
+        src: /home/borg/.ssh/id_rsa.pub
+        dest: ./ 
+      when: "'client' in inventory_hostname"
+
+    - name: Copy id_rsa.pub to backup VM
+      become: true
+      become_user: borg
+      copy:
+        src: ./client/home/borg/.ssh/id_rsa.pub
+        dest: /home/borg/.ssh/id_rsa.pub
+      when: "'backup' in inventory_hostname"
+
+    - name: cat id_rsa.pub in authorized_keys
+      ansible.builtin.shell: cat /home/borg/.ssh/id_rsa.pub >> /home/borg/.ssh/authorized_keys
+      when: "'backup' in inventory_hostname"
+
+    - name: client VM borg-backup.service
+      become: true
+      copy:
+        src: ./ansible_templates/borg-backup.service
+        dest: /etc/systemd/system/ 
+      when: "'client' in inventory_hostname"
+
+    - name: client borg-backup.timer
+      become: true
+      copy:
+        src: ./ansible_templates/borg-backup.timer
+        dest: /etc/systemd/system/
+      when: "'client' in inventory_hostname"
+
+    - name: backup VM copy sshd config
+      become: true
+      become_user: root
+      copy:
+        src: ./ansible_templates/backup.sshd_config
+        dest: /etc/ssh/
+      when: "'client' in inventory_hostname"
+
+    - name: client start borg.timer
+      become: true
+      become_user: root
+      ansible.builtin.shell: |
+              systemctl start borg-backup.timer
+              systemctl enable borg-backup.timer
+      when: "'client' in inventory_hostname"
+
+#    - name: client VM borg init
+#      ansible.builtin.shell: |
+#              export BORG_PASSPHRASE="otus"
+#              borg init --encryption=keyfile borg@192.168.56.160:/var/backup/etc/
+#      become: yes
+#      become_user: borg
+#      when: "'client' in inventory_hostname"

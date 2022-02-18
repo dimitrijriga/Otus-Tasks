@@ -1,0 +1,40 @@
+##VAGRANT_EXPERIMENTAL="dependency_provisioners"
+
+disk = './secondDisk.vdi'
+
+Vagrant.configure(2) do |config|
+
+  config.vm.define "client" do |client|
+    client.vm.box = "centos/7"
+    client.vm.hostname = "client"
+
+    client.vm.network :private_network, ip: "192.168.56.150"
+
+    client.vm.provider "virtualbox" do |vb|
+      vb.memory = "1024"
+      vb.cpus = 1
+    end
+  end
+
+  config.vm.define "backup" do |backup|
+    backup.vm.box = "centos/7"
+    backup.vm.hostname = "backup"
+
+    backup.vm.network :private_network, ip: "192.168.56.160"
+
+    backup.vm.provider "virtualbox" do |vb|
+      unless File.exist?(disk)
+        vb.customize ['createhd', '--filename', disk, '--variant', 'Fixed', '--size', 2 * 1024]
+      end
+      vb.memory = "1024"
+      vb.cpus = 1
+      vb.customize ['storageattach', :id,  '--storagectl', 'IDE', '--port', 1, '--device', 0, '--type', 'hdd', '--medium', disk]
+    end
+  end
+
+ config.vm.provision "ansible" do |ansible|
+  ansible.playbook = "playbook.yml"
+ end
+end
+
+
