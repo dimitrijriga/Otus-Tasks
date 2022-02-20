@@ -1,0 +1,191 @@
+---
+
+- hosts: all
+  become: yes
+  tasks:
+
+    - name: Install EPEL release for all RedHat OS
+      yum: name=epel-release state=present
+      when: ansible_os_family == "RedHat"
+
+    - name: Set Europe/Riga GMT all hosts
+      ansible.builtin.shell: cp /usr/share/zoneinfo/Europe/Riga /etc/localtime
+      when: ansible_os_family == "RedHat"
+
+    - name: Install utility on RedHat OS
+      yum:
+        name:
+          - net-tools
+          - vim
+          - nano
+          - htop
+          - tcpdump
+          - traceroute
+      when: ansible_os_family == "RedHat"
+
+#    - name: Install utility on Debian OS
+#      apt:
+#        name:
+#          - net-tools
+#          - vim
+#          - nano
+#          - htop
+#          - tcpdump
+#          - traceroute
+#        state: present
+#        update_cache: yes
+#      when: ansible_os_family == "Debian"
+
+    - name: Set up NAT on inetRouter and StaticRoute
+      block:
+        - name: Stop and Disable firewalld
+          ansible.builtin.shell: |
+                  systemctl stop firewalld
+                  systemctl disable firewalld
+        - name: install iptables
+          yum:
+            name:
+              - iptables
+              - iptables-services
+            state: present
+            update_cache: true
+        - name: copy iptables config
+          copy:
+            src: files/iptables
+            dest: /etc/sysconfig/iptables
+            remote_src: no
+            owner: root
+            group: root
+            mode: 0600
+        - name: start and enable iptables service
+          service:
+            name: iptables
+            state: restarted
+            enabled: true
+        - name: set up route on inetRouter
+          copy:
+            src: files/inetRouter_route_eth1.j2
+            dest: /etc/sysconfig/network-scripts/route-eth1
+            remote_src: no
+            owner: root
+            group: root
+            mode: '0644'
+        - name: Stop and Start network
+          ansible.builtin.shell: systemctl restart network
+      when: (ansible_hostname == "inetRouter")
+
+    - name: set up forward packages across Routers
+      sysctl:
+        name: net.ipv4.conf.all.forwarding
+        value: '1'
+        state: present
+      when: "'routers' in group_names"
+
+    - name: set up route on centralRouter eth2
+      copy:
+        src: files/centralRouter_route_eth2.j2
+        dest: /etc/sysconfig/network-scripts/route-eth2
+        remote_src: no
+        owner: root
+        group: root
+        mode: '0644'
+      when: (ansible_hostname == "centralRouter")
+    - name: Stop and Start network centralRouter
+      ansible.builtin.shell: systemctl restart network
+      when: (ansible_hostname == "centralRouter")
+
+    - name: set up route on centralRouter eth3
+      copy:
+        src: files/centralRouter_route_eth3.j2
+        dest: /etc/sysconfig/network-scripts/route-eth3
+        remote_src: no
+        owner: root
+        group: root
+        mode: '0644'
+      when: (ansible_hostname == "centralRouter")
+    - name: Stop and Start network centralRouter
+      ansible.builtin.shell: systemctl restart network
+      when: (ansible_hostname == "centralRouter")
+
+    - name: set up route on office1Router
+      copy:
+        src: files/office1Router_routes.j2
+        dest: /etc/netplan/50-vagrant.yaml
+        remote_src: no
+        owner: root
+        group: root
+        mode: '0644'
+      when: (ansible_hostname == "office1Router")
+
+    - name: Stop and Start network office1Router
+      ansible.builtin.shell: |
+              netplan apply
+              netplan try
+      when: (ansible_hostname == "office1Router")
+
+    - name: set up default route on office2Router
+      copy:
+        src: files/office2Router_routes.j2
+        dest: /etc/network/interfaces
+        remote_src: no
+        owner: root
+        group: root
+        mode: '0644'
+      when: (ansible_hostname == "office2Router")
+
+    - name: Stop and Start network office1Router
+      ansible.builtin.shell: systemctl restart networking.service
+      when: (ansible_hostname == "office2Router")
+
+    # echo "DEFROUTE=no" >> /etc/sysconfig/network-scripts/ifcfg-eth0
+    - name: disable default route centralRouter, centralServer
+      lineinfile:
+        dest: /etc/sysconfig/network-scripts/ifcfg-eth0
+        line: DEFROUTE=no
+      when: (ansible_hostname == "centralRouter") or (ansible_hostname == "centralServer")
+    # echo "GATEWAY=192.168.255.1" >> /etc/sysconfig/network-scripts/ifcfg-eth1
+    - name: add default gateway for centralRouter
+      lineinfile:
+        dest: /etc/sysconfig/network-scripts/ifcfg-eth1
+        line: GATEWAY=192.168.255.1
+      when: (ansible_hostname == "centralRouter")
+    # echo "GATEWAY=192.168.0.1" >> /etc/sysconfig/network-scripts/ifcfg-eth1
+    - name: add default gateway for centralServer
+      lineinfile:
+        dest: /etc/sysconfig/network-scripts/ifcfg-eth1
+        line: GATEWAY=192.168.0.1
+      when: (ansible_hostname == "centralServer")
+
+    - name: Stop and Start network centralRouter, centralServer
+      ansible.builtin.shell: systemctl restart network
+      when: (ansible_hostname == "centralRouter") or (ansible_hostname == "centralServer")
+
+    - name: set up route on office1Server
+      copy:
+        src: files/office1Server_routes.j2
+        dest: /etc/netplan/50-vagrant.yaml
+        remote_src: no
+        owner: root
+        group: root
+        mode: '0644'
+      when: (ansible_hostname == "office1Server")
+
+    - name: Stop and Start network office1Server
+      ansible.builtin.shell: |
+              netplan apply
+              netplan try
+      when: (ansible_hostname == "office1Server")
+
+    - name: set up default route on office2Server
+      copy:
+        src: files/office2Server_routes.j2
+        dest: /etc/network/interfaces
+        remote_src: no
+        owner: root
+        group: root
+        mode: '0644'
+      when: (ansible_hostname == "office2Server")
+
+    - name: Stop and Start network office2Server
+      ansible.builtin.shell: systemctl restart networking.service
+      when: (ansible_hostname == "office2Server")
