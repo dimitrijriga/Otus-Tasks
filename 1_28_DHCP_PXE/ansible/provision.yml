@@ -1,0 +1,111 @@
+---
+- hosts: all
+  become: yes
+  tasks:
+
+    - name: Set Europe/Riga GMT all hosts
+      ansible.builtin.shell: cp /usr/share/zoneinfo/Europe/Riga /etc/localtime
+      when: ansible_os_family == "RedHat"
+
+    - name: CentOS 8 yum update problem resolved
+      ansible.builtin.shell: |
+              sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-Linux-*
+              sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-Linux-*
+              systemctl stop firewalld
+              systemctl disable firewalld
+              setenforce 0
+              mkdir -p /var/lib/tftpboot/pxelinux/pxelinux.cfg
+      when: (ansible_hostname == "pxeserver")
+
+    - name: Install EPEL release for all RedHat OS
+      yum: name=epel-release state=present
+      when: ansible_os_family == "RedHat"
+
+    - name: Install utility on RedHat OS
+      yum:
+        name:
+          - vim
+          - nano
+          - htop
+          - tftp
+          - tftp-server
+          - dhcp-server
+          - nfs-utils
+          - syslinux-tftpboot.noarch
+      when: (ansible_hostname == "pxeserver")
+
+    - name: copy dhcpd.conf 
+      copy:
+        src: files/dhcpd.conf.j2
+        dest: /etc/dhcp/dhcpd.conf
+        remote_src: no
+        owner: root
+        group: root
+        mode: '0644'
+      when: (ansible_hostname == "pxeserver")
+
+    - name: copy tftpboot lib
+      ansible.builtin.shell: |
+              cp /tftpboot/pxelinux.0 /var/lib/tftpboot/pxelinux
+              cp /tftpboot/libutil.c32 /var/lib/tftpboot/pxelinux
+              cp /tftpboot/menu.c32 /var/lib/tftpboot/pxelinux
+              cp /tftpboot/libmenu.c32 /var/lib/tftpboot/pxelinux
+              cp /tftpboot/ldlinux.c32 /var/lib/tftpboot/pxelinux
+              cp /tftpboot/vesamenu.c32 /var/lib/tftpboot/pxelinux
+              mkdir -p /var/lib/tftpboot/pxelinux/images/CentOS-8/
+              mkdir /mnt/centos8-install
+      when: (ansible_hostname == "pxeserver")
+
+    - name: copy pxelinux.cfg/default
+      copy:
+        src: files/pxelinux.cfg.j2
+        dest: /var/lib/tftpboot/pxelinux/pxelinux.cfg/default
+        remote_src: no
+        owner: root
+        group: root
+        mode: '0644'
+      when: (ansible_hostname == "pxeserver")
+
+    - name: copy pxelinux boot images initrd.img
+      copy:
+        src: files/images/boot/initrd.img
+        dest: /var/lib/tftpboot/pxelinux/images/CentOS-8/
+        remote_src: no
+        owner: root
+        group: root
+        mode: '0644'
+      when: (ansible_hostname == "pxeserver")
+
+    - name: copy pxelinux boot images vmlinuz
+      copy:
+        src: files/images/boot/vmlinuz
+        dest: /var/lib/tftpboot/pxelinux/images/CentOS-8/
+        remote_src: no
+        owner: root
+        group: root
+        mode: '0644'
+      when: (ansible_hostname == "pxeserver")
+
+    - name: Stop and Start services
+      ansible.builtin.shell: |
+              systemctl start dhcpd
+              systemctl enable dhcpd
+              systemctl start tftp.service
+              systemctl enable tftp.service
+              mkfs.xfs /dev/sdb
+              mkdir /mnt/extraspace
+              mount /dev/sdb /mnt/extraspace
+              chown vagrant.vagrant  /mnt/extraspace
+      when: (ansible_hostname == "pxeserver")
+
+###  !!! ### Only after copy ISO 10GB
+# scp -i .vagrant/machines/pxeserver/virtualbox/private_key ../AlmaLinux-8.5-x86_64-dvd.iso vagrant@192.168.56.20:/mnt/extraspace/
+
+#    - name: Stop and Start services
+#      ansible.builtin.shell: |
+#              mount -t iso9660  /mnt/extraspace/AlmaLinux-8.5-x86_64-dvd.iso /mnt/centos8-install
+#              echo '/mnt/centos8-install *(ro)' > /etc/exports
+#              systemctl start nfs-server.service
+#              systemctl enable nfs-server.service
+#      when: (ansible_hostname == "pxeserver")
+
