@@ -23,6 +23,16 @@
           - traceroute
       when: ansible_os_family == "RedHat"
 
+    - name: Install nginx on centralServer
+      yum:
+        name: nginx
+
+    - name: Start and Enable nginx
+      ansible.builtin.shell: |
+                  systemctl start nginx
+                  systemctl enable nginx
+      when: (ansible_hostname == "centralServer")
+
     - name: Set up NAT on inetRouter and StaticRoute
       block:
         - name: Stop and Disable firewalld
@@ -78,7 +88,9 @@
         mode: '0644'
       when: (ansible_hostname == "centralRouter")
     - name: Stop and Start network centralRouter
-      ansible.builtin.shell: systemctl restart network
+      ansible.builtin.shell: |
+              systemctl restart network
+              iptables -t nat -A PREROUTING -i eth1 -p tcp --dport 8080 -j DNAT --to-destination 192.168.0.2:80
       when: (ansible_hostname == "centralRouter")
 
     - name: copy knock.sh script for port-knocking
