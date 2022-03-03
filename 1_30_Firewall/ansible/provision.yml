@@ -1,0 +1,115 @@
+---
+- hosts: all
+  become: yes
+  tasks:
+
+    - name: Install EPEL release for all RedHat OS
+      yum: name=epel-release state=present
+      when: ansible_os_family == "RedHat"
+
+    - name: Set Europe/Riga GMT all hosts
+      ansible.builtin.shell: cp /usr/share/zoneinfo/Europe/Riga /etc/localtime
+      when: ansible_os_family == "RedHat"
+
+    - name: Install utility on RedHat OS
+      yum:
+        name:
+          - net-tools
+          - vim
+          - nano
+          - htop
+          - nmap
+          - tcpdump
+          - traceroute
+      when: ansible_os_family == "RedHat"
+
+    - name: Set up NAT on inetRouter and StaticRoute
+      block:
+        - name: Stop and Disable firewalld
+          ansible.builtin.shell: |
+                  systemctl stop firewalld
+                  systemctl disable firewalld
+        - name: copy iptables config
+          copy:
+            src: files/iptables
+            dest: /etc/sysconfig/iptables
+            remote_src: no
+            owner: root
+            group: root
+            mode: 0600
+        - name: copy sshd config
+          copy:
+            src: files/sshd_config
+            dest: /etc/ssh/sshd_config
+            remote_src: no
+            owner: root
+            group: root
+            mode: 0600
+        - name: Restart SSH Daemon, iptables-restore
+          ansible.builtin.shell: |
+              systemctl restart sshd.service
+              iptables-restore < /etc/sysconfig/iptables
+        - name: set up route on inetRouter
+          copy:
+            src: files/inetRouter_route_eth1.j2
+            dest: /etc/sysconfig/network-scripts/route-eth1
+            remote_src: no
+            owner: root
+            group: root
+            mode: '0644'
+        - name: Stop and Start network
+          ansible.builtin.shell: systemctl restart network
+      when: (ansible_hostname == "inetRouter")
+
+    - name: set up forward packages across Routers
+      sysctl:
+        name: net.ipv4.conf.all.forwarding
+        value: '1'
+        state: present
+      when: "'routers' in group_names"
+
+    - name: set up route on centralRouter eth2
+      copy:
+        src: files/centralRouter_route_eth2.j2
+        dest: /etc/sysconfig/network-scripts/route-eth2
+        remote_src: no
+        owner: root
+        group: root
+        mode: '0644'
+      when: (ansible_hostname == "centralRouter")
+    - name: Stop and Start network centralRouter
+      ansible.builtin.shell: systemctl restart network
+      when: (ansible_hostname == "centralRouter")
+
+    - name: copy knock.sh script for port-knocking
+      copy:
+        src: files/knock.sh
+        dest: /home/vagrant/
+        remote_src: no
+        owner: vagrant
+        group: vagrant
+        mode: '0755'
+      when: (ansible_hostname == "centralRouter")
+
+    # echo "DEFROUTE=no" >> /etc/sysconfig/network-scripts/ifcfg-eth0
+    - name: disable default route centralRouter, centralServer
+      lineinfile:
+        dest: /etc/sysconfig/network-scripts/ifcfg-eth0
+        line: DEFROUTE=no
+      when: (ansible_hostname == "centralRouter") or (ansible_hostname == "centralServer")
+    # echo "GATEWAY=192.168.255.1" >> /etc/sysconfig/network-scripts/ifcfg-eth1
+    - name: add default gateway for centralRouter
+      lineinfile:
+        dest: /etc/sysconfig/network-scripts/ifcfg-eth1
+        line: GATEWAY=192.168.255.1
+      when: (ansible_hostname == "centralRouter")
+    # echo "GATEWAY=192.168.0.1" >> /etc/sysconfig/network-scripts/ifcfg-eth1
+    - name: add default gateway for centralServer
+      lineinfile:
+        dest: /etc/sysconfig/network-scripts/ifcfg-eth1
+        line: GATEWAY=192.168.0.1
+      when: (ansible_hostname == "centralServer")
+
+    - name: Stop and Start network centralRouter, centralServer
+      ansible.builtin.shell: systemctl restart network
+      when: (ansible_hostname == "centralRouter") or (ansible_hostname == "centralServer")
