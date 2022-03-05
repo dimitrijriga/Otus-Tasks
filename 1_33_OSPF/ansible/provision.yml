@@ -1,0 +1,103 @@
+---
+- name: OSPF
+  hosts: all
+  become: yes
+  vars_files:
+    - defaults/main.yml
+
+  tasks:
+    - name: Install base tools
+      apt:
+        name:
+          - net-tools
+          - vim
+          - nano
+          - htop
+          - nmap
+          - tcpdump
+          - traceroute
+        state: present
+        update_cache: true
+
+#Отключаем UFW и удаляем его из автозагрузки
+    - name: disable ufw service
+      service:
+        name: ufw
+        state: stopped
+        enabled: false
+# Добавляем gpg-key репозитория
+    - name: add gpg frrouting.org
+      apt_key:
+        url: "https://deb.frrouting.org/frr/keys.asc"
+        state: present
+# Добавляем репозиторий https://deb.frrouting.org/frr
+    - name: add frr repo
+      apt_repository:
+        repo: 'deb https://deb.frrouting.org/frr {{ ansible_distribution_release }} frr-stable'
+        state: present
+# Обновляем пакеты и устанавливаем FRR
+    - name: install FRR packages
+      apt:
+        name:
+          - frr
+          - frr-pythontools
+        state: present
+        update_cache: true
+# Включаем маршрутизацию транзитных пакетов
+    - name: set up forward packages across routers
+      sysctl:
+        name: net.ipv4.conf.all.forwarding
+        value: '1'
+        state: present
+# Выключаем строгую проверку транзитных пакетов
+    - name: set up net.ipv4.conf.all.rp_filter
+      sysctl:
+        name: net.ipv4.conf.all.rp_filter
+        value: '0'
+        state: present
+# Копируем файл daemons на хосты, указываем владельца и права
+    - name: copy daemons on all routers
+      template:
+        src: daemons
+        dest: /etc/frr/daemons
+        owner: frr
+        group: frr
+        mode: 0640
+        remote_src: no
+# Копируем файл frr_r1.conf на router1, указываем владельца и права
+    - name: copy frr_r1.conf on router1
+      template:
+        src: frr_r1.conf
+        dest: /etc/frr/frr.conf
+        owner: frr
+        group: frr
+        mode: 0640
+        remote_src: no
+      when: (ansible_hostname == "router1")
+# Копируем файл frr_r2.conf на router2, указываем владельца и права
+    - name: copy frr_r2.conf on router2
+      template:
+        src: frr_r2.conf
+        dest: /etc/frr/frr.conf
+        owner: frr
+        group: frr
+        mode: 0640
+        remote_src: no
+      when: (ansible_hostname == "router2")
+# Копируем файл frr_r3.conf на router3, указываем владельца и права
+    - name: copy frr_r3.conf on router3
+      template:
+        src: frr_r3.conf
+        dest: /etc/frr/frr.conf
+        owner: frr
+        group: frr
+        mode: 0640
+        remote_src: no
+      when: (ansible_hostname == "router3")
+# Перезапускам FRR и добавляем в автозагрузку
+    - name: restart FRR
+      service:
+        name: frr
+        state: restarted
+        enabled: true
+
