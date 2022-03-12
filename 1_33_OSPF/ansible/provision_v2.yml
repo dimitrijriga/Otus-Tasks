@@ -1,0 +1,43 @@
+---
+# Копируем файл daemons на хосты, указываем владельца и права
+- name: OSPF
+  hosts: all
+  become: yes
+  tasks:
+    - name: copy daemons on router1 and router3
+      template:
+        src: daemons_v2
+        dest: /etc/frr/daemons
+        owner: frr
+        group: frr
+        mode: 0640
+        remote_src: no
+      when: (ansible_hostname == "router1") or 
+            (ansible_hostname == "router3")
+# Копируем файл frr_r1.conf на router1, указываем владельца и права
+    - name: copy frr_r1.conf on router1
+      template:
+        src: frr_r1_v2.conf
+        dest: /etc/frr/frr.conf
+        owner: frr
+        group: frr
+        mode: 0640
+        remote_src: no
+      when: (ansible_hostname == "router1")
+# Копируем файл frr_r3.conf на router3, указываем владельца и права
+    - name: copy frr_r3.conf on router3
+      template:
+        src: frr_r3_v2.conf
+        dest: /etc/frr/frr.conf
+        owner: frr
+        group: frr
+        mode: 0640
+        remote_src: no
+      when: (ansible_hostname == "router3")
+# Перезапускам FRR и добавляем в автозагрузку
+    - name: restart FRR
+      service:
+        name: frr
+        state: restarted
+        enabled: true
+
