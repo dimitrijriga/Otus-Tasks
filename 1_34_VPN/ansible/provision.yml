@@ -1,0 +1,174 @@
+---
+- hosts: all
+  become: yes
+  tasks:
+
+    - name: Install EPEL release for all RedHat OS
+      yum: name=epel-release state=present
+      when: ansible_os_family == "RedHat"
+
+    - name: Set Europe/Riga GMT all hosts
+      ansible.builtin.shell: cp /usr/share/zoneinfo/Europe/Riga /etc/localtime
+      when: ansible_os_family == "RedHat"
+
+    - name: Install utility on RedHat OS
+      yum:
+        name:
+          - net-tools
+          - vim
+          - nano
+          - htop
+          - tcpdump
+          - traceroute
+          - openvpn
+          - easy-rsa
+          - iperf3
+          - policycoreutils 
+          - policycoreutils-python 
+          - setools 
+          - setools-console 
+          - setroubleshoot
+      when: ansible_os_family == "RedHat"
+
+    - name: copy TAP openvpn_server_tap.conf to centralRouter
+      copy:
+        src: files/openvpn_server_tap.conf
+        dest: /etc/openvpn/server_tap.conf
+        remote_src: no
+        owner: root
+        group: root
+        mode: 0600
+      when: (ansible_hostname == "centralRouter")
+
+    - name: copy TUN openvpn_server_tun.conf to centralRouter2
+      copy:
+        src: files/openvpn_server_tun.conf
+        dest: /etc/openvpn/server_tun.conf
+        remote_src: no
+        owner: root
+        group: root
+        mode: 0600
+      when: (ansible_hostname == "centralRouter2")
+
+    - name: copy TAP openvpn_client_tap.conf to centralServer
+      copy:
+        src: files/openvpn_client_tap.conf
+        dest: /etc/openvpn/server.conf
+        remote_src: no
+        owner: root
+        group: root
+        mode: 0600
+      when: (ansible_hostname == "centralServer")
+
+    - name: copy TUN openvpn_client_tun.conf to centralServer2
+      copy:
+        src: files/openvpn_client_tun.conf
+        dest: /etc/openvpn/server.conf
+        remote_src: no
+        owner: root
+        group: root
+        mode: 0600
+      when: (ansible_hostname == "centralServer2")
+
+    - name: Configure OpenVPN on centralRouter TAP
+      ansible.builtin.shell: |
+              openvpn --genkey --secret /etc/openvpn/static_tap.key
+              systemctl start openvpn@server_tap
+              systemctl enable openvpn@server_tap
+      when: (ansible_hostname == "centralRouter")
+
+    - name: Configure OpenVPN on centralRouter2 TUN
+      ansible.builtin.shell: |
+              openvpn --genkey --secret /etc/openvpn/static_tun.key
+              systemctl start openvpn@server_tun
+              systemctl enable openvpn@server_tun
+      when: (ansible_hostname == "centralRouter2")
+
+    - name: Copy static.key from centralRouter to Local host TAP
+      fetch:
+        src: /etc/openvpn/static_tap.key
+        dest: ./
+      when: (ansible_hostname == "centralRouter")
+
+    - name: Copy static.key from centralRouter2 to Local host TUN
+      fetch:
+        src: /etc/openvpn/static_tun.key
+        dest: ./
+      when: (ansible_hostname == "centralRouter2")
+
+    - name: Copy static.key to centralServer, TAP
+      copy:
+        src: ./centralRouter/etc/openvpn/static_tap.key
+        dest: /etc/openvpn/static_tap.key
+        remote_src: no
+        owner: root
+        group: root
+        mode: 0600
+      when: "'centralServer' in inventory_hostname" 
+
+    - name: Copy static.key to centralServer2, TUN
+      copy:
+        src: ./centralRouter2/etc/openvpn/static_tun.key
+        dest: /etc/openvpn/static_tun.key
+        remote_src: no
+        owner: root
+        group: root
+        mode: 0600
+      when: "'centralServer2' in inventory_hostname" 
+
+    - name: Start and Enable OpenVPN TAP on centralServer
+      ansible.builtin.shell: |
+              systemctl start openvpn@server
+              systemctl enable openvpn@server
+      when: (ansible_hostname == "centralServer")
+
+    - name: Start and Enable OpenVPN TAP on centralServer2
+      ansible.builtin.shell: |
+              systemctl start openvpn@server
+              systemctl enable openvpn@server
+      when: (ansible_hostname == "centralServer2")
+
+    - name: OpenVPN RAS on inetRouter
+      ansible.builtin.shell: |
+              cd /etc/openvpn/
+              /usr/share/easy-rsa/3.0.8/easyrsa init-pki
+              echo 'rasvpn' | /usr/share/easy-rsa/3.0.8/easyrsa build-ca nopass
+              echo 'rasvpn' | /usr/share/easy-rsa/3.0.8/easyrsa gen-req server nopass
+              echo 'yes' | /usr/share/easy-rsa/3.0.8/easyrsa sign-req server server
+              /usr/share/easy-rsa/3.0.8/easyrsa gen-dh
+              openvpn --genkey --secret ta.key
+              echo 'client' | /usr/share/easy-rsa/3/easyrsa gen-req client nopass
+              echo 'yes' | /usr/share/easy-rsa/3/easyrsa sign-req client client
+              echo 'iroute 192.168.56.0 255.255.255.0' > /etc/openvpn/client/client
+              setenforce 0
+              systemctl start openvpn@server
+              systemctl enable openvpn@server
+      when: (ansible_hostname == "inetRouter")
+
+    - name: copy RAS server.conf to inetRouter
+      copy:
+        src: files/openvpn_server_ras.conf
+        dest: /etc/openvpn/server.conf
+        remote_src: no
+        owner: root
+        group: root
+        mode: 0600
+      when: (ansible_hostname == "inetRouter")
+
+    - name: Copy RAS ca.crt to local host
+      fetch:
+        src: /etc/openvpn/pki/ca.crt
+        dest: ../ras_vpn
+      when: (ansible_hostname == "inetRouter")
+
+    - name: Copy RAS client.crt to local host
+      fetch:
+        src: /etc/openvpn/pki/issued/client.crt
+        dest: ../ras_vpn
+      when: (ansible_hostname == "inetRouter")
+
+    - name: Copy RAS client.key to local host
+      fetch:
+        src: /etc/openvpn/pki/private/client.key
+        dest: ../ras_vpn
+      when: (ansible_hostname == "inetRouter")
