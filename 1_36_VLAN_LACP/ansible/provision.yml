@@ -1,0 +1,177 @@
+---
+- hosts: all
+  become: yes
+  tasks:
+
+    - name: Install EPEL release for all RedHat OS
+      yum: name=epel-release state=present
+      when: ansible_os_family == "RedHat"
+
+    - name: Set Europe/Riga GMT all hosts
+      ansible.builtin.shell: cp /usr/share/zoneinfo/Europe/Riga /etc/localtime
+      when: ansible_os_family == "RedHat"
+
+    - name: Install utility on RedHat OS
+      yum:
+        name:
+          - net-tools
+          - vim
+          - nano
+          - htop
+          - tcpdump
+          - traceroute
+          - iperf3
+          - policycoreutils 
+          - policycoreutils-python 
+          - setools 
+          - setools-console 
+          - setroubleshoot
+      when: ansible_os_family == "RedHat"
+
+    - name: copy ifcfg-bond0 to inetRouter
+      copy:
+        src: files/inetRouter_ifcfg-bond0
+        dest: /etc/sysconfig/network-scripts/ifcfg-bond0
+        remote_src: no
+        owner: root
+        group: root
+        mode: 0600
+      when: (ansible_hostname == "inetRouter")
+
+    - name: copy ifcfg-eth1 to inetRouter
+      copy:
+        src: files/inetRouter_ifcfg-eth1
+        dest: /etc/sysconfig/network-scripts/ifcfg-eth1
+        remote_src: no
+        owner: root
+        group: root
+        mode: 0600
+      when: (ansible_hostname == "inetRouter")
+
+    - name: copy ifcfg-eth2 to inetRouter
+      copy:
+        src: files/inetRouter_ifcfg-eth2
+        dest: /etc/sysconfig/network-scripts/ifcfg-eth2
+        remote_src: no
+        owner: root
+        group: root
+        mode: 0600
+      when: (ansible_hostname == "inetRouter")
+
+    - name: inetRouter restart network
+      ansible.builtin.shell: systemctl restart network
+      when: (ansible_hostname == "inetRouter")
+
+    - name: copy ifcfg-bond0 to centralRouter
+      copy:
+        src: files/centralRouter_ifcfg-bond0
+        dest: /etc/sysconfig/network-scripts/ifcfg-bond0
+        remote_src: no
+        owner: root
+        group: root
+        mode: 0600
+      when: (ansible_hostname == "centralRouter")
+
+    - name: copy ifcfg-eth1 to centralRouter
+      copy:
+        src: files/centralRouter_ifcfg-eth1
+        dest: /etc/sysconfig/network-scripts/ifcfg-eth1
+        remote_src: no
+        owner: root
+        group: root
+        mode: 0600
+      when: (ansible_hostname == "centralRouter")
+
+    - name: copy ifcfg-eth2 to centralRouter
+      copy:
+        src: files/centralRouter_ifcfg-eth2
+        dest: /etc/sysconfig/network-scripts/ifcfg-eth2
+        remote_src: no
+        owner: root
+        group: root
+        mode: 0600
+      when: (ansible_hostname == "centralRouter")
+
+    - name: centralRouter restart network
+      ansible.builtin.shell: systemctl restart network
+      when: (ansible_hostname == "centralRouter")
+
+    - name: copy ifcfg-vlan100 testClient1
+      copy:
+        src: files/testClient1_ifcfg-vlan100
+        dest: /etc/sysconfig/network-scripts/ifcfg-vlan100
+        remote_src: no
+        owner: root
+        group: root
+        mode: 0600
+      when: (ansible_hostname == "testClient1")
+
+    - name: testClient1 restart network
+      ansible.builtin.shell: systemctl restart network
+      when: (ansible_hostname == "testClient1")
+
+    - name: copy ifcfg-vlan100 testClient2
+      copy:
+        src: files/testClient2_ifcfg-vlan100
+        dest: /etc/sysconfig/network-scripts/ifcfg-vlan100
+        remote_src: no
+        owner: root
+        group: root
+        mode: 0600
+      when: (ansible_hostname == "testClient2")
+
+    - name: testClient2 restart network
+      ansible.builtin.shell: systemctl restart network
+      when: (ansible_hostname == "testClient2")
+
+    - name: copy ifcfg-vlan101 testClient3
+      copy:
+        src: files/testClient3_ifcfg-vlan101
+        dest: /etc/sysconfig/network-scripts/ifcfg-vlan101
+        remote_src: no
+        owner: root
+        group: root
+        mode: 0600
+      when: (ansible_hostname == "testClient3")
+
+    - name: testClient3 restart network
+      ansible.builtin.shell: systemctl restart network
+      when: (ansible_hostname == "testClient3")
+
+    - name: copy ifcfg-vlan101 testClient4
+      copy:
+        src: files/testClient4_ifcfg-vlan101
+        dest: /etc/sysconfig/network-scripts/ifcfg-vlan101
+        remote_src: no
+        owner: root
+        group: root
+        mode: 0600
+      when: (ansible_hostname == "testClient4")
+
+    - name: testClient4 restart network
+      ansible.builtin.shell: systemctl restart network
+      when: (ansible_hostname == "testClient4")
+
+    - name: copy ifcfg-vlan100 centralRouter
+      copy:
+        src: files/centralRouter_ifcfg-vlan100
+        dest: /etc/sysconfig/network-scripts/ifcfg-vlan100
+        remote_src: no
+        owner: root
+        group: root
+        mode: 0600
+      when: (ansible_hostname == "centralRouter")
+
+    - name: copy ifcfg-vlan101 centralRouter
+      copy:
+        src: files/centralRouter_ifcfg-vlan101
+        dest: /etc/sysconfig/network-scripts/ifcfg-vlan101
+        remote_src: no
+        owner: root
+        group: root
+        mode: 0600
+      when: (ansible_hostname == "centralRouter")
+
+    - name: centralRouter restart network
+      ansible.builtin.shell: systemctl restart network
+      when: (ansible_hostname == "centralRouter")

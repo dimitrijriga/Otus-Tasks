@@ -1,0 +1,85 @@
+# -*- mode: ruby -*-
+# vim: set ft=ruby :
+
+MACHINES = {
+  :inetRouter => {
+        :box_name => "centos/7",
+        :vm_name => "inetRouter",
+        :net => [
+                  {adapter: 2, virtualbox__intnet: "dir-net1"},
+                  {adapter: 3, virtualbox__intnet: "dir-net1"},
+                  {ip: '192.168.56.9', adapter: 8},
+                ]
+  },
+  :centralRouter => {
+        :box_name => "centos/7",
+        :vm_name => "centralRouter",
+        :net => [
+                  {adapter: 2, virtualbox__intnet: "dir-net1"},
+                  {adapter: 3, virtualbox__intnet: "dir-net1"},
+                  {adapter: 4, virtualbox__intnet: "dir-net2"},
+                  {ip: '192.168.56.10', adapter: 8},
+                ]
+  },
+  :testClient1 => {
+        :box_name => "centos/7",
+        :vm_name => "testClient1",
+        :net => [
+                  {adapter: 7, virtualbox__intnet: "dir-net2"},
+                  {ip: '192.168.56.11', adapter: 8},
+                ]
+  },
+  :testClient2 => {
+        :box_name => "centos/7",
+        :vm_name => "testClient2",
+        :net => [
+                  {adapter: 7, virtualbox__intnet: "dir-net2"},
+                  {ip: '192.168.56.12', adapter: 8},
+                ]
+  },
+  :testClient3 => {
+        :box_name => "centos/7",
+        :vm_name => "testClient3",
+        :net => [
+                  {adapter: 7, virtualbox__intnet: "dir-net2"},
+                  {ip: '192.168.56.13', adapter: 8},
+                ]
+  },
+  :testClient4 => {
+        :box_name => "centos/7",
+        :vm_name => "testClient4",
+        :net => [
+                  {adapter: 7, virtualbox__intnet: "dir-net2"},
+                  {ip: '192.168.56.14', adapter: 8},
+                ]
+  },
+}
+##############################################################################################################
+
+Vagrant.configure("2") do |config|
+  MACHINES.each do |boxname, boxconfig|
+    config.vm.define boxname do |box|
+      box.vm.box = boxconfig[:box_name]
+      box.vm.host_name = boxname.to_s
+
+      if boxconfig[:vm_name] == "testClient4"
+        box.vm.provision "ansible" do |ansible|
+          ansible.playbook = "ansible/provision.yml"
+          ansible.inventory_path = "inventory/hosts"
+          ansible.host_key_checking = "false"
+          ansible.limit = "all"
+        end
+      end
+      boxconfig[:net].each do |ipconf|
+      box.vm.network "private_network", ipconf
+    end
+    if boxconfig.key?(:public)
+      box.vm.network "public_network", boxconfig[:public]
+    end
+    box.vm.provision "shell", inline: <<-SHELL
+      mkdir -p ~root/.ssh
+      cp ~vagrant/.ssh/auth* ~root/.ssh
+    SHELL
+    end
+  end
+end
